@@ -18,12 +18,12 @@ end
 
 def monitor_servers
 	check_server_status # comprueba el estado de los servidores en OpenStack
-	
+
 	loads = []
 	SERVERS.each do |server|
 		if server.status == "ACTIVE"
 			loads << get_server_load(server)
-		end			
+		end
 	end
 
 	avg_load = loads.inject(:+) / loads.length
@@ -85,7 +85,7 @@ def add_proxy_configuration(server)
 	proxy_configuration += "\n" + new_server
 
 	`echo '#{proxy_configuration}' > /etc/haproxy/haproxy.cfg` # se sobreescribe la configuración antigua
-	
+
 	# reiniciamos manualmente el servicio de haproxy
 	`service haproxy stop`
 	sleep(2) # por precaución
@@ -94,18 +94,18 @@ end
 
 def get_server_load(server, username = "root")
 	output = `ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i estudiante19.pem #{username}@#{server.hostname} cat /proc/loadavg`
-    load = (output.split(" ")[0]).to_f
-    puts "La carga actual de '#{server.hostname}' es de '#{load}'"
-    load
+	load = (output.split(" ")[0]).to_f
+	puts "La carga actual de '#{server.hostname}' es de '#{load}'"
+	load
 end
 
 def start_server
 	server_number = $servers_count + 1
 	boot_command = "nova boot --user-data cloudinit-boot-script --image 17754e8c-364a-40fc-8a1f-f6a48a481374 --flavor m1.small --key-name estudiante19 worker-node-sergio-#{server_number}"
-	
+
 	puts "Se procede a crear un nuevo servidor web."
 	puts "Se utilizará la orden [#{boot_command}]"
-	
+
 	`#{boot_command}`
 
 	SERVERS << Server.new("worker-node-sergio-#{server_number}", "BUILD", "")
@@ -141,7 +141,7 @@ def remove_proxy_config(server)
 	proxy_configuration = proxy_configuration.gsub(remove_server, "")
 
 	`echo '#{proxy_configuration}' > /etc/haproxy/haproxy.cfg` # se sobreescribe la configuración antigua
-	
+
 	# reiniciamos manualmente el servicio de haproxy
 	`service haproxy stop`
 	sleep(2) # por precaución
